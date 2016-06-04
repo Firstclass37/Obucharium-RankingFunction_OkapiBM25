@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace RankingFunction_OkapiBM25
 {
@@ -10,14 +13,69 @@ namespace RankingFunction_OkapiBM25
     {
         static void Main(string[] args)
         {
+            Console.Title = "Okapi BM25";
             RankingFunction func = new RankingFunction();
-            var result = func.Rank("Anyone who reads Old and Middle English literary texts will be familiar with the mid-brown volumes of the EETS, with the symbol of Alfred's jewel embossed on the front cover." +
-                                   "Most of the works attributed to King Alfred or to Aelfric, along with some of those by bishop Wulfstan and much anonymous prose and verse from the pre-Conquest period, are to be found within the Society's three series; all of the surviving medieval drama, most of the Middle English romances, much religious and secular prose and verse including the English works of John Gower, Thomas Hoccleve and most of Caxton's prints all find their place in the publications. " +
-                                   "Without EETS editions, study of medieval English texts would hardly be possible.");
-            foreach (var item in result)
+
+            do
             {
-                Console.WriteLine(item.Score);
+                Console.Clear();
+
+                try
+                {
+                    string result = string.Empty;
+                    string path = Dialog.GetStringAnswer("Path");
+                    string text = GetTextFromPath(path);
+
+                    int count = Dialog.GetValueAnswer("Input count of sentence that you need");
+                    if (count < 2) count = 2;
+                    Dialog.ShowMessage("In process..",ConsoleColor.Yellow);                  
+                    foreach (var item in func.Rank(text).Take(count))
+                    {
+                        result += String.Format("{0} - {1}", item.Value, item.Score) + Environment.NewLine;
+                    }
+
+                    SaveText(CreateNewPath(path),result);
+                    Dialog.ShowMessage("Complete!!!",ConsoleColor.Green);
+
+                }
+                catch (InvalidInputException e)
+                {
+                    Dialog.ShowMessage(String.Format("{0} : {1}", e.Message, e.ErrorString), ConsoleColor.DarkRed);
+                    continue;
+                }
+                catch (Exception e)
+                {
+                    Dialog.ShowMessage(String.Format("{0}", e.Message), ConsoleColor.DarkRed);
+                }
+                
+
+            } while (Dialog.YNAnswer("Continue?"));
+        }
+
+        private static string GetTextFromPath(string path)
+        {
+
+            if (File.Exists(path))
+            {
+                return File.ReadAllText(path);
+            }
+            else
+            {
+                throw new FileNotFoundException("???");
             }
         }
+
+        private static string CreateNewPath(string oldPath)
+        {
+            string path = Path.GetDirectoryName(oldPath);
+            string name = "(Result)" + Path.GetFileName(oldPath);
+            return path + name;
+        }
+
+        private static void SaveText(string path,string text)
+        {
+            File.WriteAllText(path,text);
+        }
+
     }
 }
