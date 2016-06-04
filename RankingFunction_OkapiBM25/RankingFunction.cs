@@ -81,7 +81,7 @@ namespace RankingFunction_OkapiBM25
         private List<SentenceNode> SortResult(List<SentenceNode> result )
         {
             return result
-                .OrderByDescending(r => r.Value)
+                .OrderByDescending(r => r.Score)
                 .ToList();
         }
 
