@@ -13,18 +13,33 @@ namespace RankingFunction_OkapiBM25
         private List<string> words;
         private List<string> sentences;
 
+        /// <summary>
+        /// free parameters
+        /// </summary>
         private double K = 2.0;
+        /// <summary>
+        /// free parameters
+        /// </summary>
         private double B = 0.75;
+        /// <summary>
+        /// the average document length
+        /// </summary>
         private double avgdl;
         
-
+        /// <summary>
+        /// The method set start parameters ,calculate rank for every sentence and return sorted by rank result as collection
+        /// </summary>
+        /// <param name="inputText"></param>
+        /// <returns></returns>
         public IEnumerable<SentenceNode> Rank(string inputText)
         {
             SetStartState(inputText);
             var result = SortResult(CalcScore());
             return result;
         }
-
+        /// <summary>
+        /// The method calculate rank for every sentence and return result as collection
+        /// </summary>
         private List<SentenceNode> CalcScore()
         {        
             List<SentenceNode> result = new List<SentenceNode>();   
@@ -34,15 +49,20 @@ namespace RankingFunction_OkapiBM25
 
                 foreach (var word in words)
                 {
-                    score += CaclIF(word, sentence)*CalcIDF(word);
+                    score += CaclLeftPart(word, sentence)*CalcIDF(word);
                 }
                 result.Add(new SentenceNode(sentence,score));
 
             }
             return result;
         }
-
-        private double CaclIF(string word, string sentence)
+        /// <summary>
+        /// /// The method calculate left part of function for current word and current sentence
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="sentence"></param>
+        /// <returns></returns>
+        private double CaclLeftPart(string word, string sentence)
         {
             double wordFrequency = GetTermFrequency(word,sentence);
             int sentenceCount = GetWords(sentence).Count;
@@ -50,7 +70,11 @@ namespace RankingFunction_OkapiBM25
             double result = (wordFrequency * (K + 1) ) / (wordFrequency + K*(1 - B + B*sentenceCount/avgdl ) );
             return result;
         }
-
+        /// <summary>
+        /// /// The method calculate inverse document frequency for current word
+        /// </summary>
+        /// <param name="word"></param>
+        /// <returns></returns>
         private double CalcIDF(string word)
         {
             int sentenceCount = sentences.Count;
@@ -61,7 +85,12 @@ namespace RankingFunction_OkapiBM25
             double result = Math.Log10( (sentenceCount*1.0 - wordMatchCount + 0.5) / (wordMatchCount+0.5) );
             return result > 0 ? result : 0;
         }
-
+        /// <summary>
+        /// The method calculate word frequency in the current sentence
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="text"></param>
+        /// <returns></returns>
         private double GetTermFrequency(string word, string text)
         {
             var currentWords = GetWords(text);
@@ -77,7 +106,11 @@ namespace RankingFunction_OkapiBM25
                 return 0;
             }
         }
-
+        /// <summary>
+        /// The method sort result list by score value
+        /// </summary>
+        /// <param name="result"></param>
+        /// <returns></returns>
         private List<SentenceNode> SortResult(List<SentenceNode> result )
         {
             return result
@@ -86,7 +119,10 @@ namespace RankingFunction_OkapiBM25
         }
 
 
-
+        /// <summary>
+        /// The method set start paratemers
+        /// </summary>
+        /// <param name="inputText"></param>
         private void SetStartState(string inputText)
         {
             words = GetWords(inputText);
@@ -94,7 +130,11 @@ namespace RankingFunction_OkapiBM25
             avgdl = inputText.Length*1.0/sentences.Count;
 
         }
-
+        /// <summary>
+        /// The method return list of words in input text
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
         private List<string> GetWords(string text)
         {
             List<string> result = new List<string>();
@@ -109,7 +149,11 @@ namespace RankingFunction_OkapiBM25
                 .ToList();
             return result;
         }
-
+        /// <summary>
+        /// The method return list of sentences in target text
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
         private List<string> GetSentences(string text)
         {
             List<string> result = new List<string>();
