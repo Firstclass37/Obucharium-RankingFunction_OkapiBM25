@@ -22,19 +22,24 @@ namespace RankingFunction_OkapiBM25
 
                 try
                 {
-                    string result = string.Empty;
+                    string resultText = string.Empty;
                     string path = Dialog.GetStringAnswer("Path");
                     string text = GetTextFromPath(path);
 
                     int count = Dialog.GetValueAnswer("Input count of sentence that you need");
                     if (count < 2) count = 2;
-                    Dialog.ShowMessage("In process..",ConsoleColor.Yellow);                  
-                    foreach (var item in func.Rank(text).Take(count))
+                    Dialog.ShowMessage("In process..",ConsoleColor.Yellow);  
+                    
+                    DateTime start = DateTime.Now;
+                    var resultList = func.Rank(text).Take(count).ToList().OrderBy(w => w.Pos);
+                    foreach (var item in resultList)
                     {
-                        result += String.Format("{0} - {1}", item.Value, item.Score) + Environment.NewLine;
+                        resultText += String.Format("{0} - {1:f2}", item.Value, item.Score) + Environment.NewLine;
                     }
 
-                    SaveText(CreateNewPath(path),result);
+                    Dialog.ShowMessage(string.Format("Compete for {0}",(DateTime.Now - start).TotalSeconds),ConsoleColor.Green);
+
+                    SaveText(CreateNewPath(path),resultText);
                     Dialog.ShowMessage("Complete!!!",ConsoleColor.Green);
 
                 }
@@ -69,7 +74,7 @@ namespace RankingFunction_OkapiBM25
         {
             string path = Path.GetDirectoryName(oldPath);
             string name = "(Result)" + Path.GetFileName(oldPath);
-            return path + name;
+            return Path.Combine(path, name);
         }
 
         private static void SaveText(string path,string text)
